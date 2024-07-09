@@ -1,0 +1,79 @@
+SELECT product_id, SUM(product_quantity) AS TotalQuantity FROM user_order WHERE user="darshil2@gmail.com" GROUP by product_id 
+
+
+SELECT user,product_id, SUM(price * product_quantity) AS TotalQuantity FROM user_order LEFT JOIN product_listing ON user_order.product_id = product_listing.id WHERE user="darshil@gmail.com" GROUP by product_id 
+
+
+SELECT user,SUM(product_id), SUM(price * product_quantity) AS TotalQuantity FROM user_order LEFT JOIN product_listing ON user_order.product_id = product_listing.id WHERE user="darshil@gmail.com" GROUP by user 
+
+
+
+SELECT user,SUM(product_quantity), SUM(price * product_quantity) AS TotalQuantity FROM user_order LEFT JOIN product_listing ON user_order.product_id = product_listing.id WHERE user="darshil@gmail.com" GROUP by user 
+
+
+
+
+
+
+
+                    if (err) throw err;
+                    let insertobj = {
+                        tablename: `user_order`,
+                        tablefield: `(product_id,product_quantity,user)`,
+                        tablevalue: `('${product_id}','${quantity}','${email}')`
+                    }
+                    let insertsql = insertquery(insertobj)
+                    con.query(insertsql, function (err, result) {
+                        if (err) throw err;
+                        if (result) {
+                            let obj = {
+                                field: "*",
+                                tablename: "user_data",
+                                wherecondition: `user_id = '${email}'`,
+                            }
+                            let sql = selectquery(obj)
+                            con.query(sql, function (err, result) {
+                                if (err) throw err;
+                                if (result.length == 0) {
+                                    let insertobj = {
+                                        tablename: `user_data`,
+                                        tablefield: `( user_id, total_quantity, total_cost)`,
+                                        subquery: {
+                                            field: `user,SUM(product_quantity), SUM(price * product_quantity) AS TotalQuantity`,
+                                            tablename: `user_order`,
+                                            join: `LEFT JOIN product_listing ON user_order.product_id = product_listing.id`,
+                                            wherecondition: `user='${email}'`,
+                                            group: `user`
+                                        }
+                                    }
+                                    let insertsql = insertquery(insertobj)
+                                    // `INSERT INTO user_data( user_id, total_quantity, total_cost) SELECT user,SUM(product_quantity), SUM(price * product_quantity) AS TotalQuantity FROM user_order LEFT JOIN product_listing ON user_order.product_id = product_listing.id WHERE user='${email}' GROUP by user `
+                                    con.query(insertsql)
+                                } else {
+                                    let updateobj = {
+                                        tablename: `user_data`,
+                                        selectobj: {
+                                            field: `price`,
+                                            tablename: `product_listing`,
+                                            wherecondition: `id = '${product_id}'`
+                                        },
+                                        set: `total_quantity = total_quantity + '${quantity}', total_cost = total_cost + '${quantity}' *  (SELECT price from product_listing WHERE id = '${product_id}')`,
+                                        wherecondition: `user_id = '${email}'`
+                                    }
+                                    let updatesql = updatequery(updateobj)
+                                    // `UPDATE user_data SET total_quantity = total_quantity + '${quantity}', total_cost = total_cost + '${quantity}' * (SELECT price from product_listing WHERE id = '${product_id}') WHERE user_id = '${email}'`
+                                    con.query(updatesql)
+                                }
+                            })
+                            return res.status(200).json({ status: 1, message: `Your order Successfully Placed and your order quantity placed is ${quantity}` })
+                        } else {
+                            return res.status(200).json({ status: 0, message: "Your order not Placed" })
+                        }
+                    })
+
+
+
+
+                     con.query(`SELECT product_quantity, user_id, product_price FROM user_order WHERE id = "10"`,function(err,result){
+                                console.log(JSON.parse(result[0].product_price).totalprice)
+                            })
