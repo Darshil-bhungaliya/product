@@ -13,7 +13,7 @@ export const selectquery = (obj) => {
         query += ` GROUP BY ${obj.group} `
     }
     console.log(obj)
-    console.log(query)
+    // console.log(query)
     return query;
 }
 
@@ -24,7 +24,7 @@ export const updatequery = (obj) => {
     if (obj.wherecondition) {
         query += ` WHERE  ${obj.wherecondition}`;
     }
-    console.log(query)
+    // console.log(query)
     return query;
 }
 
@@ -40,6 +40,6 @@ export const insertquery = (obj) => {
         query += selectquery(obj.subquery)
     }
 
-    console.log(query)
+    // console.log(query)
     return query;
 }   
